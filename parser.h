@@ -1,4 +1,4 @@
-/*	$OpenBSD: parser.h,v 1.33 2018/12/19 15:27:29 claudio Exp $ */
+/*	$OpenBSD: parser.h,v 1.35 2019/02/11 15:47:55 claudio Exp $ */
 
 /*
  * Copyright (c) 2003, 2004 Henning Brauer <henning@openbsd.org>
@@ -23,7 +23,7 @@ enum actions {
 };
 
 struct parse_result {
-	enum actions	 action;
+	enum actions		 action;
 };
 
 struct parse_result	*parse(int, char *[]);

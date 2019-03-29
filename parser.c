@@ -1,4 +1,4 @@
-/*	$OpenBSD: parser.c,v 1.88 2018/12/19 15:27:29 claudio Exp $ */
+/*	$OpenBSD: parser.c,v 1.92 2019/02/27 04:34:21 claudio Exp $ */
 
 /*
  * Copyright (c) 2003, 2004 Henning Brauer <henning@openbsd.org>
@@ -23,6 +23,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <strings.h>
 
 #include "parser.h"
 
@@ -47,7 +48,8 @@ static const struct token t_main[] = {
 
 static struct parse_result	res;
 
-const struct token	*match_token(const char *, const struct token []);
+const struct token	*match_token(int *argc, char **argv[],
+			    const struct token []);
 void			 show_valid_args(const struct token []);
 
 struct parse_result *
@@ -56,10 +58,10 @@ parse(int argc, char *argv[])
 	const struct token	*table = t_main;
 	const struct token	*match;
 
-	memset(&res, 0, sizeof(res));
+	bzero(&res, sizeof(res));
 
 	while (argc >= 0) {
-		if ((match = match_token(argv[0], table)) == NULL) {
+		if ((match = match_token(&argc, &argv, table)) == NULL) {
 			fprintf(stderr, "valid commands/args:\n");
 			show_valid_args(table);
 			return (NULL);
@@ -83,11 +85,12 @@ parse(int argc, char *argv[])
 }
 
 const struct token *
-match_token(const char *word, const struct token table[])
+match_token(int *argc, char **argv[], const struct token table[])
 {
 	u_int			 i, match;
 	const struct token	*t = NULL;
-	size_t			 wordlen = 0;
+	const char		*word = *argv[0];
+	size_t			wordlen = 0;
 
 	match = 0;
 	if (word != NULL)
