@@ -19,11 +19,17 @@
 #include <sys/types.h>
 
 enum actions {
+	START,
+	STOP,
+	RESTART,
+	RUN,
+	INC,
 	NONE
 };
 
 struct parse_result {
 	enum actions		 action;
+	const char		*filename;
 };
 
 struct parse_result	*parse(int, char *[]);

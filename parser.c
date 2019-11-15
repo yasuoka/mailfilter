@@ -24,13 +24,17 @@
 #include <stdlib.h>
 #include <string.h>
 #include <strings.h>
+#include <unistd.h>
+#include <err.h>
+#include <sysexits.h>
 
 #include "parser.h"
 
 enum token_type {
 	NOTOKEN,
 	ENDTOKEN,
-	KEYWORD
+	KEYWORD,
+	FILENAME
 };
 
 struct token {
@@ -41,8 +45,19 @@ struct token {
 };
 
 static const struct token t_main[];
+static const struct token t_filename[];
 
 static const struct token t_main[] = {
+	{ KEYWORD,	"start",	RESTART,	t_filename},
+	{ KEYWORD,	"stop",		STOP,		NULL},
+	{ KEYWORD,	"restart",	RESTART,	t_filename},
+	{ KEYWORD,	"run",		RUN,		t_filename},
+	{ KEYWORD,	"inc",		INC,		NULL},
+	{ ENDTOKEN,	"",		NONE,		NULL}
+};
+
+static const struct token t_filename[] = {
+	{ FILENAME,	"",		NONE,		NULL},
 	{ ENDTOKEN,	"",		NONE,		NULL}
 };
 
@@ -112,6 +127,15 @@ match_token(int *argc, char **argv[], const struct token table[])
 					res.action = t->value;
 			}
 			break;
+		case FILENAME:
+			if (word != NULL && wordlen > 0) {
+				if (access(word, R_OK) == -1)
+					err(EX_NOINPUT, "%s", word);
+				res.filename = word;
+				match++;
+				t = &table[i];
+			}
+			break;
 		case ENDTOKEN:
 			break;
 		}
@@ -142,6 +166,9 @@ show_valid_args(const struct token table[])
 			break;
 		case KEYWORD:
 			fprintf(stderr, "  %s\n", table[i].keyword);
+			break;
+		case FILENAME:
+			fprintf(stderr, "  <filename>\n");
 			break;
 		case ENDTOKEN:
 			break;
