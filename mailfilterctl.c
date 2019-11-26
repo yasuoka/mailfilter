@@ -500,7 +500,7 @@ vlog(const char *fmt, va_list ap, const char *label, bool additional)
 	    lt->tm_hour, lt->tm_min, lt->tm_sec, label);
 	vfprintf(logfp, fmt, ap);
 	if (additional)
-		fputs(strerror(errno), logfp);
+		fprintf(logfp, ": %s", strerror(errno));
 	fputc('\n', logfp);
 	fflush(logfp);
 }
@@ -511,7 +511,7 @@ log_err(const char *fmt, ...)
 	va_list	 ap;
 
 	va_start(ap, fmt);
-	vlog(fmt, ap, "ERR", false);
+	vlog(fmt, ap, "ERR", true);
 	va_end(ap);
 	abort();
 }
@@ -522,7 +522,7 @@ log_errx(const char *fmt, ...)
 	va_list	 ap;
 
 	va_start(ap, fmt);
-	vlog(fmt, ap, "ERR", true);
+	vlog(fmt, ap, "ERR", false);
 	va_end(ap);
 	abort();
 }
@@ -533,7 +533,7 @@ log_warn(const char *fmt, ...)
 	va_list	 ap;
 
 	va_start(ap, fmt);
-	vlog(fmt, ap, "WARNING", false);
+	vlog(fmt, ap, "WARNING", true);
 	va_end(ap);
 }
 
@@ -543,7 +543,7 @@ log_warnx(const char *fmt, ...)
 	va_list	 ap;
 
 	va_start(ap, fmt);
-	vlog(fmt, ap, "WARNING", true);
+	vlog(fmt, ap, "WARNING", false);
 	va_end(ap);
 }
 
