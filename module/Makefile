@@ -22,6 +22,8 @@ LDADD+=		-L${LOCALBASE}/lib -liconv -levent -lcurl -lnghttp2 -lssl -lcrypto -lz 
 
 all: ${LIB}.so
 
+CLEANFILES=	${LIB}.so
+
 ${LIB}.so: ${SOBJS} ${DPADD}
 	@echo Building shared object XX
 	${CC} -shared -Wl,-soname,${LIB}.so ${PICFLAG} -o ${.TARGET} ${SOBJS} ${LDADD}
