@@ -140,6 +140,9 @@ rfc2047_decode(const char *str, const char *tocode, char *decode,
 					i += 3;
 				} else
 					goto fail;
+			} else if (tmp[i] == '_') {
+				tmp[j++] = ' ';
+				i++;
 			} else
 				tmp[j++] = tmp[i++];
 		}
