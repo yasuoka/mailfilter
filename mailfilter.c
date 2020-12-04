@@ -704,6 +704,9 @@ l_mh_folder_save(lua_State *L)
 
 	lua_call(L, 2, 0);
 
+	if (fsync(fd) == -1)
+		luaL_error(L, "fsync(%s/%d) failed: %s", folder->path, seq,
+		    strerror(errno));
 	close(fd);
 
 	lua_pushinteger(L, seq);
@@ -720,8 +723,10 @@ l_mh_folder_save_on_write(lua_State *L)
 
 	buf = luaL_checklstring(L, 1, &bufsz);
 	fd = lua_tointeger(L, lua_upvalueindex(2));
-	if (fd >= 0)
-		write(fd, buf, bufsz);
+	if (fd >= 0) {
+		if (write(fd, buf, bufsz) == -1)
+			luaL_error(L, "write failed: %s", strerror(errno));
+	}
 
 	return (0);
 }
