@@ -560,8 +560,6 @@ l_mh_folder(lua_State *L)
 	lua_pushstring(L, name);
 	lua_settable(L, -3);
 
-	lua_setmetatable(L, -2);
-
 	if (*name != '/') {
 		if ((home = getenv("HOME")) == NULL)
 			luaL_error(L, "missing HOME environment variable");
@@ -571,6 +569,12 @@ l_mh_folder(lua_State *L)
 	} else
 		realpath(name, folder->path);
 	folder->name = basename(folder->path);
+
+	lua_pushstring(L, "path");
+	lua_pushstring(L, folder->path);
+	lua_settable(L, -3);
+
+	lua_setmetatable(L, -2);
 
 	if (stat(folder->path, &st) == -1) {
 		if (errno != ENOENT)
