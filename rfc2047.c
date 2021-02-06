@@ -57,7 +57,7 @@ int	 b64_pton(const char *, u_char *, size_t);
 int	 rfc2047_decode(const char *, const char *, char *, size_t);
 
 /*
- *
+ * Decode a text encoded in MIME message header extension (RFC 2047).
  */
 int
 rfc2047_decode(const char *str, const char *tocode, char *decode,
@@ -98,7 +98,7 @@ rfc2047_decode(const char *str, const char *tocode, char *decode,
 		}
 	}
 	if (cs == NULL)
-		goto fail;	/* unknown encoding */
+		goto fail;	/* unknown charset */
 
 	p += rfc2047_charsets[i].mimelen + 1;
 	len -= rfc2047_charsets[i].mimelen + 1;
