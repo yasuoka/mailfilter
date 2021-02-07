@@ -156,7 +156,7 @@ rfc2047_decode(const char *str, const char *tocode, char *decode,
 	}
 	if ((ic = iconv_open(tocode, cs)) == (iconv_t)-1)
 		goto fail;
-	if (iconv(ic, &in, &insz, &out, &outsz) == -1)
+	if (iconv(ic, &in, &insz, &out, &outsz) == (size_t)-1)
 		goto fail;
 	freezero(tmp, tmpsz);
 	iconv_close(ic);
