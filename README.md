@@ -20,7 +20,7 @@ for _,msg in pairs(mailserver:list()) do
     end
   })
   if not spam then
-    inbox:save(msg, {"X-Spam-Check", "passed")
+    inbox:save(msg, {"X-Spam-Check", "passed"})
   else
     spam:save(msg)
   end
