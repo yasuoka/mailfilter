@@ -665,10 +665,9 @@ l_mh_folder_list(lua_State *L)
 int
 l_mh_folder_get(lua_State *L)
 {
-	struct mh_folder	*folder;
 	int			 idx;
 
-	folder = *(struct mh_folder **)luaL_checkudata(L, 1, "mail.mh_folder");
+	luaL_checkudata(L, 1, "mail.mh_folder");
 	idx = luaL_checkinteger(L, 2);
 	mh_message(L, idx, 1);
 
@@ -917,10 +916,7 @@ mbox_metatable(lua_State *L)
 int
 l_mbox(lua_State *L)
 {
-	const char	*path;
-
-
-	path = luaL_checkstring(L, 1);
+	luaL_checkstring(L, 1);
 
 	lua_newtable(L);	/* returning table */
 	//lua_newuserdata(L, 100);
