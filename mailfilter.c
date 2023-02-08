@@ -919,7 +919,6 @@ l_mbox(lua_State *L)
 	luaL_checkstring(L, 1);
 
 	lua_newtable(L);	/* returning table */
-	//lua_newuserdata(L, 100);
 
 	/* metatable */
 	mbox_metatable(L);
@@ -930,8 +929,6 @@ l_mbox(lua_State *L)
 	lua_pushstring(L, "path");
 	lua_pushvalue(L, 1);
 	lua_settable(L, -3);
-
-
 
 	lua_setmetatable(L, -2);
 
