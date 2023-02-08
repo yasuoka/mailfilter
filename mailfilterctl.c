@@ -406,8 +406,11 @@ on_timer(int fd, short ev, void *ctx)
 
 	log_info("Calling `inc' by timer");
 	lua_getglobal(L, "inc");
-	if (lua_pcall(L, 0, 0, 0) != LUA_OK)
+	if (lua_pcall(L, 0, 0, 0) != LUA_OK) {
 		log_warnx("%s", luaL_checkstring(L, 1));
+		daemon_stop();
+		return;
+	}
 	reset_timer(self);
 }
 
