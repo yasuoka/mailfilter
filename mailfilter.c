@@ -150,6 +150,16 @@ struct curl_pop3 {
 	FILE			*fp;
 };
 
+/* make sure curl is cleaned up when error */
+#define POP3_FATAL(_L, _pop3, ...)				\
+	do {							\
+		if ((_pop3)->curl != NULL) {			\
+			curl_easy_cleanup((_pop3)->curl);	\
+			(_pop3)->curl = NULL;			\
+		}						\
+		luaL_error(L, __VA_ARGS__);			\
+	} while (0/*CONSTCOND*/)
+
 int
 l_pop3(lua_State *L)
 {
@@ -219,13 +229,14 @@ l_pop3_list(lua_State *L)
 	if (pop3->fp == NULL) {
 		if ((pop3->fp = open_memstream(&pop3->buffer,
 		    &pop3->buffersiz)) == NULL)
-			luaL_error(L, "open_memstream(): %s", strerror(errno));
+			POP3_FATAL(L, pop3, "open_memstream(): %s",
+			    strerror(errno));
 		pop3_curl_init(pop3);
 	}
 
 	curlcode = curl_easy_perform(pop3->curl);
 	if (curlcode != CURLE_OK)
-		luaL_error(L, "%s", curl_easy_strerror(curlcode));
+		POP3_FATAL(L, pop3, "%s", curl_easy_strerror(curlcode));
 	fputc('\0', pop3->fp);
 	fflush(pop3->fp);
 
@@ -243,15 +254,15 @@ l_pop3_list(lua_State *L)
 			idx++;
 		}
 		if (idx != 2)
-			luaL_error(L, "could not parse the result of LIST "
-			    "command");
+			POP3_FATAL(L, pop3, "could not parse the result of "
+			    "LIST command");
 
 		idx = strtonum(arg[0], 1, INT_MAX, &strerr);
 		if (strerr != NULL)
-			luaL_error(L, "%s: %s", arg[0], strerr);
+			POP3_FATAL(L, pop3, "%s: %s", arg[0], strerr);
 		siz = strtonum(arg[1], 1, INT64_MAX>>1, &strerr);
 		if (strerr != NULL)
-			luaL_error(L, "%s: %s", arg[1], strerr);
+			POP3_FATAL(L, pop3, "%s: %s", arg[1], strerr);
 
 		lua_newtable(L);
 
@@ -299,11 +310,11 @@ l_pop3_list(lua_State *L)
 				idx++;
 			}
 			if (idx != 2)
-				luaL_error(L, "could not parse the result of "
-				    "UIDL command");
+				POP3_FATAL(L, pop3, "could not parse the "
+				    "result of UIDL command");
 			idx = strtonum(arg[0], 1, INT_MAX, &strerr);
 			if (strerr != NULL)
-				luaL_error(L, "%s: %s", arg[0], strerr);
+				POP3_FATAL(L, pop3, "%s: %s", arg[0], strerr);
 			lua_rawgeti(L, -1, idx);
 			if (lua_istable(L, -1)) {
 				lua_pushstring(L, "uid");
@@ -330,7 +341,7 @@ l_pop3_getpass(lua_State *L)
 	if (password) {
 		free(pop3->password);
 		if ((pop3->password = strdup(password)) == NULL)
-			luaL_error(L, "strdup(): %s", strerror(errno));
+			POP3_FATAL(L, pop3, "strdup(): %s", strerror(errno));
 		curl_easy_setopt(pop3->curl, CURLOPT_PASSWORD, pop3->password);
 	}
 
@@ -426,17 +437,19 @@ l_pop3_message_topretr(lua_State *L, bool top)
 	ctx.L = L;
 	ctx.state = RFC5322_NONE;
 	if ((ctx.parser = rfc5322_parser_new()) == NULL)
-		luaL_error(L, "rfc5322_parser_new(): %s", strerror(errno));
+		POP3_FATAL(L, pop3, "rfc5322_parser_new(): %s",
+		    strerror(errno));
 	if ((ctx.buffer = bytebuffer_create(8192)) == NULL) {
 		rfc5322_free(ctx.parser);
-		luaL_error(L, "bytebuffer_create(): %s", strerror(errno));
+		POP3_FATAL(L, pop3, "bytebuffer_create(): %s",
+		    strerror(errno));
 	}
 
 	curlcode = curl_easy_perform(pop3->curl);
 	if (curlcode != CURLE_OK) {
 		bytebuffer_destroy(ctx.buffer);
 		rfc5322_free(ctx.parser);
-		luaL_error(L, "%s", curl_easy_strerror(curlcode));
+		POP3_FATAL(L, pop3, "%s", curl_easy_strerror(curlcode));
 	}
 
 	bytebuffer_destroy(ctx.buffer);
@@ -474,7 +487,7 @@ l_pop3_message_delete(lua_State *L)
 
 	curlcode = curl_easy_perform(pop3->curl);
 	if (curlcode != CURLE_OK)
-		luaL_error(L, "%s", curl_easy_strerror(curlcode));
+		POP3_FATAL(L, pop3, "%s", curl_easy_strerror(curlcode));
 
 	return (0);
 }
@@ -636,10 +649,10 @@ l_mh_folder_list(lua_State *L)
 			newsiz = (entsiz == 0)? 128 : entsiz * 2;
 			if ((entn = recallocarray(ent0, entsiz, newsiz,
 			    sizeof(struct direntseq))) == NULL) {
-			    	free(ent0);
+				free(ent0);
 				luaL_error(L,
 				    "recallocarray(): %s", strerror(errno));
-		    	}
+			}
 			entsiz = newsiz;
 			ent0 = entn;
 		}
@@ -836,7 +849,7 @@ l_mh_folder_message_retr(lua_State *L)
 		luaL_error(L, "rfc5322_parser_new(): %s", strerror(errno));
 	}
 	if ((ctx.buffer = bytebuffer_create(8192)) == NULL) {
-	    	rfc5322_free(ctx.parser);
+		rfc5322_free(ctx.parser);
 		close(f);
 		luaL_error(L, "bytebuffer_create(): %s", strerror(errno));
 	}
