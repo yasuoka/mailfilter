@@ -203,6 +203,8 @@ l_pop3(lua_State *L)
 void
 pop3_curl_init(struct curl_pop3	*pop3)
 {
+	if (pop3->curl != NULL)
+		return;
 	pop3->curl = curl_easy_init();
 	curl_easy_setopt(pop3->curl, CURLOPT_URL, pop3->url);
 	curl_easy_setopt(pop3->curl, CURLOPT_USERNAME, pop3->username);
@@ -231,8 +233,8 @@ l_pop3_list(lua_State *L)
 		    &pop3->buffersiz)) == NULL)
 			POP3_FATAL(L, pop3, "open_memstream(): %s",
 			    strerror(errno));
-		pop3_curl_init(pop3);
 	}
+	pop3_curl_init(pop3);
 
 	curlcode = curl_easy_perform(pop3->curl);
 	if (curlcode != CURLE_OK)
