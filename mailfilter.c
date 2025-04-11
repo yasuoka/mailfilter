@@ -1098,7 +1098,7 @@ decode_text(const char *str)
 			else
 				cp = ret + strlen(ret);
 
-			while (*str != '\0' && !isspace(*str))
+			while (*str != '\0' && !isspace((unsigned char )*str))
 				*(cp++) = *(str++);
 			if (*str != '\0')
 				*(cp++) = ' ';
